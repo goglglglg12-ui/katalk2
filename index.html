@@ -246,7 +246,7 @@
   <!-- director panel -->
   <div class="panel-wrap" id="panel">
     <div class="p-head">
-      <h1>🎬 감독 패널 · v11</h1>
+      <h1>🎬 감독 패널 · v12</h1>
       <span class="close" id="closePanel">✕</span>
     </div>
     <div class="p-body">
@@ -576,20 +576,20 @@
 
   // ---------- 키보드 대응 (탭하면 자연스럽게 올라오도록) ----------
   const phone=$("#phone"), vv=window.visualViewport;
-  let baseH=window.innerHeight, kbActive=false, settled=false, kbRAF=0, settleT=0;
-  const RESERVE=380; // 아이폰7 키보드보다 넉넉히 크게 — 포커스 순간 입력창을 이 위로 올려 밀림 원천 차단
+  let baseH=window.innerHeight, kbActive=false, settled=false, kbRAF=0, settleT=0, kbH=0;
+  const RESERVE=340; // 첫 탭 기본 키보드 높이. 한 번 열리면 실제 높이를 재서 이후엔 딱 맞춤(떴다 붙는 현상 제거)
   function fitViewport(){
     if(!body.classList.contains("fill")){ phone.style.height=""; phone.style.transform=""; chat.scrollTop=chat.scrollHeight; return; }
     let h;
     if(!kbActive || settled) h = vv ? vv.height : baseH;                 // 평소/키보드 안정 후: 정확히 (틈 없음)
-    else                     h = Math.min(vv?vv.height:baseH, baseH-RESERVE); // 올라오는 중: 미리 올려둠
+    else                     h = Math.min(vv?vv.height:baseH, baseH-(kbH||RESERVE)); // 올라오는 중: 키보드 위로
     phone.style.height = h + "px";
     phone.style.transform = "";
     window.scrollTo(0,0);
     chat.scrollTop = chat.scrollHeight;
   }
   function kbLoop(){ if(!kbActive || settled) return; fitViewport(); kbRAF=requestAnimationFrame(kbLoop); }
-  function onVV(){ settled=false; fitViewport(); clearTimeout(settleT); settleT=setTimeout(()=>{ if(kbActive){ settled=true; fitViewport(); } },220); }
+  function onVV(){ settled=false; fitViewport(); clearTimeout(settleT); settleT=setTimeout(()=>{ if(kbActive){ settled=true; if(vv){ const k=baseH-vv.height; if(k>120&&k<520) kbH=k; } fitViewport(); } },220); }
   if(vv){ vv.addEventListener("resize",onVV); vv.addEventListener("scroll",onVV); }
   window.addEventListener("scroll",()=>{ if(body.classList.contains("fill")) window.scrollTo(0,0); });
   input.addEventListener("touchstart",(e)=>{ if(kbActive) return; e.preventDefault(); baseH=Math.max(baseH,window.innerHeight); kbActive=true; settled=false; fitViewport(); input.focus(); },{passive:false});
