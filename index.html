@@ -74,8 +74,8 @@
 
   /* chat */
   .chat{
-    flex:1 1 auto;min-height:0;overflow-y:auto;padding:14px 12px 8px;
-    display:flex;flex-direction:column;gap:2px;
+    flex:1 1 auto;min-height:0;overflow:hidden;padding:14px 12px 8px;
+    display:flex;flex-direction:column;justify-content:flex-end;gap:2px;
   }
   .chat::-webkit-scrollbar{width:0;}
   .datechip{align-self:center;background:rgba(0,0,0,.14);color:#f4f8fb;
@@ -246,7 +246,7 @@
   <!-- director panel -->
   <div class="panel-wrap" id="panel">
     <div class="p-head">
-      <h1>🎬 감독 패널 · v16</h1>
+      <h1>🎬 감독 패널 · v17</h1>
       <span class="close" id="closePanel">✕</span>
     </div>
     <div class="p-body">
@@ -574,21 +574,9 @@
   document.addEventListener("fullscreenchange",onFs);
   document.addEventListener("webkitfullscreenchange",onFs);
 
-  // ---------- 키보드 대응 (단순·확실 버전) ----------
-  const phone=$("#phone"), vv=window.visualViewport;
-  let kbActive=false, kbRAF=0;
-  function fitViewport(){
-    if(!body.classList.contains("fill")){ phone.style.height=""; phone.style.transform=""; chat.scrollTop=chat.scrollHeight; return; }
-    phone.style.height = (vv ? vv.height : window.innerHeight) + "px"; // 보이는 영역(키보드 위)에 딱 맞춤
-    phone.style.transform = vv ? "translateY("+vv.offsetTop+"px)" : ""; // 밀린 만큼 되당겨 헤더 고정
-    window.scrollTo(0,0);
-    chat.scrollTop = chat.scrollHeight;
-  }
-  function kbLoop(){ if(!kbActive) return; fitViewport(); kbRAF=requestAnimationFrame(kbLoop); }
-  if(vv){ vv.addEventListener("resize",fitViewport); vv.addEventListener("scroll",fitViewport); }
-  window.addEventListener("scroll",()=>{ if(body.classList.contains("fill")) window.scrollTo(0,0); });
-  input.addEventListener("focus",()=>{ kbActive=true; cancelAnimationFrame(kbRAF); kbLoop(); setTimeout(()=>{ kbActive=false; cancelAnimationFrame(kbRAF); fitViewport(); }, 700); });
-  input.addEventListener("blur",()=>{ kbActive=false; cancelAnimationFrame(kbRAF); setTimeout(fitViewport,150); });
+  // ---------- 키보드 대응: 없음 (iOS 기본 동작에 맡김, 스크롤·붙잡기 코드 제거) ----------
+  const phone=$("#phone");
+  function fitViewport(){ phone.style.height=""; phone.style.transform=""; } // 높이는 CSS(100dvh)가 처리
 
   // ---------- 기본값 복원 ----------
   $("#resetAll").onclick=()=>{
