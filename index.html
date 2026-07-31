@@ -220,6 +220,10 @@
   body.fill.standalone .status{display:none;} /* 홈화면 앱: 진짜 상태바 사용 */
   body.fill.standalone .kt-header{padding-top:max(10px,env(safe-area-inset-top));}
 
+  /* 헤더만 화면 최상단에 고정 (이름/메뉴 밀림 방지) */
+  body.fill .kt-header{position:fixed;top:0;left:0;right:0;z-index:60;will-change:transform;}
+  body.fill .chat{padding-top:56px;}
+
   /* 폰에서 바로: 이름 탭 수정 · 메뉴로 패널 오버레이 */
   .kt-header .title{cursor:text;}
   .kt-header .icons{cursor:pointer;}
@@ -246,14 +250,14 @@
   <!-- director panel -->
   <div class="panel-wrap" id="panel">
     <div class="p-head">
-      <h1>🎬 감독 패널 · v17</h1>
+      <h1>🎬 감독 패널 · v18</h1>
       <span class="close" id="closePanel">✕</span>
     </div>
     <div class="p-body">
 
       <div class="sec">
         <label class="h">상대방 · 화면</label>
-        <div class="fld"><label>상대방 이름</label><input class="in" id="cfgName" value="이름"></div>
+        <div class="fld"><label>상대방 이름</label><input class="in" id="cfgName" value="누나"></div>
         <div class="rowflex">
           <div class="fld"><label>프로필 색</label><input class="in" id="cfgColor" type="color" value="#8fa9bd" style="height:38px;padding:3px;"></div>
           <div class="fld"><label>프로필 이니셜</label><input class="in" id="cfgInitial" value="" placeholder="예: 이"></div>
@@ -328,7 +332,7 @@
 
     <div class="kt-header">
       <span class="back">‹</span>
-      <span class="title" id="hdrName">이름</span>
+      <span class="title" id="hdrName">누나</span>
       <span class="icons" id="menuBtn">
         <svg viewBox="0 0 24 24" fill="none" stroke="#101c26" stroke-width="2" stroke-linecap="round"><path d="M3 6h18M3 12h18M3 18h18"/></svg>
       </span>
@@ -355,7 +359,7 @@
 
   // ---------- state ----------
   let cfg = {
-    name:"이름", color:"#8fa9bd", initial:"",
+    name:"누나", color:"#8fa9bd", initial:"",
     status:"9:41", date:"3월 5일 화요일", autoRead:false
   };
   let msgs = [
@@ -574,9 +578,15 @@
   document.addEventListener("fullscreenchange",onFs);
   document.addEventListener("webkitfullscreenchange",onFs);
 
-  // ---------- 키보드 대응: 없음 (iOS 기본 동작에 맡김, 스크롤·붙잡기 코드 제거) ----------
-  const phone=$("#phone");
-  function fitViewport(){ phone.style.height=""; phone.style.transform=""; } // 높이는 CSS(100dvh)가 처리
+  // ---------- 헤더만 화면 최상단에 고정 (이름/메뉴 밀림 방지) ----------
+  const phone=$("#phone"), vv=window.visualViewport, header=$(".kt-header");
+  function fitViewport(){ phone.style.height=""; phone.style.transform=""; }
+  function pinHeader(){ header.style.transform = (body.classList.contains("fill") && vv) ? "translateY("+vv.offsetTop+"px)" : ""; }
+  let pinRAF=0, pinOn=false;
+  function pinLoop(){ if(!pinOn) return; pinHeader(); pinRAF=requestAnimationFrame(pinLoop); }
+  if(vv){ vv.addEventListener("resize",pinHeader); vv.addEventListener("scroll",pinHeader); }
+  input.addEventListener("focus",()=>{ pinOn=true; cancelAnimationFrame(pinRAF); pinLoop(); setTimeout(()=>{ pinOn=false; cancelAnimationFrame(pinRAF); pinHeader(); },700); });
+  input.addEventListener("blur",()=>{ pinOn=false; cancelAnimationFrame(pinRAF); setTimeout(pinHeader,150); });
 
   // ---------- 기본값 복원 ----------
   $("#resetAll").onclick=()=>{
