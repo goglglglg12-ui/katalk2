@@ -246,7 +246,7 @@
   <!-- director panel -->
   <div class="panel-wrap" id="panel">
     <div class="p-head">
-      <h1>🎬 감독 패널 · v12</h1>
+      <h1>🎬 감독 패널 · v13</h1>
       <span class="close" id="closePanel">✕</span>
     </div>
     <div class="p-body">
@@ -381,7 +381,7 @@
   const STORE_KEY="katalkScene_v1";
   function save(){
     try{ localStorage.setItem(STORE_KEY, JSON.stringify({
-      cfg, msgs, uid, st:{ap:$("#ampm").value,h:hh.value,m:mm.value}
+      cfg, msgs, uid, kbH, st:{ap:$("#ampm").value,h:hh.value,m:mm.value}
     })); }catch(e){}
   }
   function load(){
@@ -391,6 +391,7 @@
       if(d.cfg) cfg=Object.assign(cfg,d.cfg);
       if(Array.isArray(d.msgs)) msgs=d.msgs;
       if(typeof d.uid==="number") uid=d.uid;
+      if(typeof d.kbH==="number") kbH=d.kbH;
       if(d.st){ $("#ampm").value=d.st.ap; hh.value=d.st.h; mm.value=d.st.m; }
     }catch(e){}
   }
@@ -577,7 +578,7 @@
   // ---------- 키보드 대응 (탭하면 자연스럽게 올라오도록) ----------
   const phone=$("#phone"), vv=window.visualViewport;
   let baseH=window.innerHeight, kbActive=false, settled=false, kbRAF=0, settleT=0, kbH=0;
-  const RESERVE=340; // 첫 탭 기본 키보드 높이. 한 번 열리면 실제 높이를 재서 이후엔 딱 맞춤(떴다 붙는 현상 제거)
+  const RESERVE=310; // 첫 탭 기본 키보드 높이. 한 번 열리면 실제 높이를 재서 저장 → 이후 딱 맞춤(들뜸 제거)
   function fitViewport(){
     if(!body.classList.contains("fill")){ phone.style.height=""; phone.style.transform=""; chat.scrollTop=chat.scrollHeight; return; }
     let h;
@@ -589,7 +590,7 @@
     chat.scrollTop = chat.scrollHeight;
   }
   function kbLoop(){ if(!kbActive || settled) return; fitViewport(); kbRAF=requestAnimationFrame(kbLoop); }
-  function onVV(){ settled=false; fitViewport(); clearTimeout(settleT); settleT=setTimeout(()=>{ if(kbActive){ settled=true; if(vv){ const k=baseH-vv.height; if(k>120&&k<520) kbH=k; } fitViewport(); } },220); }
+  function onVV(){ settled=false; fitViewport(); clearTimeout(settleT); settleT=setTimeout(()=>{ if(kbActive){ settled=true; if(vv){ const k=baseH-vv.height; if(k>120&&k<520) kbH=k; } fitViewport(); save(); } },220); }
   if(vv){ vv.addEventListener("resize",onVV); vv.addEventListener("scroll",onVV); }
   window.addEventListener("scroll",()=>{ if(body.classList.contains("fill")) window.scrollTo(0,0); });
   input.addEventListener("touchstart",(e)=>{ if(kbActive) return; e.preventDefault(); baseH=Math.max(baseH,window.innerHeight); kbActive=true; settled=false; fitViewport(); input.focus(); },{passive:false});
