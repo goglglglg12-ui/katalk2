@@ -246,7 +246,7 @@
   <!-- director panel -->
   <div class="panel-wrap" id="panel">
     <div class="p-head">
-      <h1>🎬 감독 패널 · v5</h1>
+      <h1>🎬 감독 패널 · v6</h1>
       <span class="close" id="closePanel">✕</span>
     </div>
     <div class="p-body">
@@ -586,14 +586,11 @@
     chat.scrollTop=chat.scrollHeight;
   }
   if(vv){ vv.addEventListener("resize",fitViewport); vv.addEventListener("scroll",fitViewport); }
-  let kbRAF=0;
-  function trackKeyboard(dur){
-    const end=performance.now()+dur;
-    cancelAnimationFrame(kbRAF);
-    (function loop(){ fitViewport(); if(performance.now()<end) kbRAF=requestAnimationFrame(loop); })();
-  }
-  input.addEventListener("focus",()=>trackKeyboard(700));
-  input.addEventListener("blur",()=>trackKeyboard(700));
+  window.addEventListener("scroll",()=>{ if(body.classList.contains("fill")) window.scrollTo(0,0); });
+  let kbRAF=0, kbActive=false;
+  function kbLoop(){ if(!kbActive) return; fitViewport(); kbRAF=requestAnimationFrame(kbLoop); }
+  input.addEventListener("focus",()=>{ kbActive=true; cancelAnimationFrame(kbRAF); kbLoop(); });
+  input.addEventListener("blur",()=>{ kbActive=false; cancelAnimationFrame(kbRAF); setTimeout(fitViewport,150); });
 
   // ---------- 기본값 복원 ----------
   $("#resetAll").onclick=()=>{
