@@ -246,7 +246,7 @@
   <!-- director panel -->
   <div class="panel-wrap" id="panel">
     <div class="p-head">
-      <h1>🎬 감독 패널 · v15</h1>
+      <h1>🎬 감독 패널 · v16</h1>
       <span class="close" id="closePanel">✕</span>
     </div>
     <div class="p-body">
@@ -580,8 +580,8 @@
   function fitViewport(){
     if(!body.classList.contains("fill")){ phone.style.height=""; phone.style.transform=""; chat.scrollTop=chat.scrollHeight; return; }
     phone.style.height = (vv ? vv.height : window.innerHeight) + "px"; // 보이는 영역(키보드 위)에 딱 맞춤
-    phone.style.transform = "";
-    window.scrollTo(0,0);   // 헤더가 위로 밀려 올라가지 않게 항상 맨 위 고정
+    phone.style.transform = vv ? "translateY("+vv.offsetTop+"px)" : ""; // 밀린 만큼 되당겨 헤더 고정
+    window.scrollTo(0,0);
     chat.scrollTop = chat.scrollHeight;
   }
   function kbLoop(){ if(!kbActive) return; fitViewport(); kbRAF=requestAnimationFrame(kbLoop); }
