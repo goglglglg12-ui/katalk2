@@ -246,7 +246,7 @@
   <!-- director panel -->
   <div class="panel-wrap" id="panel">
     <div class="p-head">
-      <h1>🎬 감독 패널 · v6</h1>
+      <h1>🎬 감독 패널 · v7</h1>
       <span class="close" id="closePanel">✕</span>
     </div>
     <div class="p-body">
@@ -576,20 +576,21 @@
 
   // ---------- 키보드 대응 (탭하면 자연스럽게 올라오도록) ----------
   const phone=$("#phone"), vv=window.visualViewport;
+  let baseH=window.innerHeight, kbActive=false, kbRAF=0;
+  const RESERVE=300; // 키보드 대략 높이 — 포커스 순간 입력창을 이만큼 위로 미리 올림
   function fitViewport(){
-    if(!vv) return;
-    if(body.classList.contains("fill")){
-      phone.style.height=vv.height+"px";
-      phone.style.transform="";
-      window.scrollTo(0,0);
-    }else{ phone.style.height=""; phone.style.transform=""; }
-    chat.scrollTop=chat.scrollHeight;
+    if(!body.classList.contains("fill")){ phone.style.height=""; phone.style.transform=""; chat.scrollTop=chat.scrollHeight; return; }
+    let h = vv ? vv.height : baseH;
+    if(kbActive) h = Math.min(h, baseH - RESERVE);
+    phone.style.height = h + "px";
+    phone.style.transform = "";
+    window.scrollTo(0,0);
+    chat.scrollTop = chat.scrollHeight;
   }
+  function kbLoop(){ if(!kbActive) return; fitViewport(); kbRAF=requestAnimationFrame(kbLoop); }
   if(vv){ vv.addEventListener("resize",fitViewport); vv.addEventListener("scroll",fitViewport); }
   window.addEventListener("scroll",()=>{ if(body.classList.contains("fill")) window.scrollTo(0,0); });
-  let kbRAF=0, kbActive=false;
-  function kbLoop(){ if(!kbActive) return; fitViewport(); kbRAF=requestAnimationFrame(kbLoop); }
-  input.addEventListener("focus",()=>{ kbActive=true; cancelAnimationFrame(kbRAF); kbLoop(); });
+  input.addEventListener("focus",()=>{ if(!kbActive) baseH=Math.max(baseH,window.innerHeight); kbActive=true; fitViewport(); cancelAnimationFrame(kbRAF); kbLoop(); });
   input.addEventListener("blur",()=>{ kbActive=false; cancelAnimationFrame(kbRAF); setTimeout(fitViewport,150); });
 
   // ---------- 기본값 복원 ----------
