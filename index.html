@@ -578,9 +578,17 @@
   const phone=$("#phone"), vv=window.visualViewport;
   let kbActive=false, kbRAF=0;
   function fitViewport(){
-    if(!body.classList.contains("fill")){ phone.style.height=""; phone.style.transform=""; chat.scrollTop=chat.scrollHeight; return; }
-    phone.style.height = (vv ? vv.height : window.innerHeight) + "px"; // 보이는 영역(키보드 위)에 딱 맞춤
-    phone.style.transform = vv ? "translateY("+vv.offsetTop+"px)" : ""; // 밀린 만큼 되당겨 헤더 고정
+    if(!body.classList.contains("fill")){
+      phone.style.height="";
+      phone.style.transform="";
+      chat.scrollTop=chat.scrollHeight;
+      return;
+    }
+
+    // 헤더가 키보드 때문에 움직이지 않도록 phone 전체를 translate 하지 않음
+    phone.style.height = (vv ? vv.height : window.innerHeight) + "px";
+    phone.style.transform = "";
+
     window.scrollTo(0,0);
     chat.scrollTop = chat.scrollHeight;
   }
