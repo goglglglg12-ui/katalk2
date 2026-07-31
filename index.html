@@ -21,7 +21,7 @@
     --panel-line:#31363c;
   }
   *{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent;}
-  html,body{height:100%;}
+  html,body{height:100%;background:var(--katalk-blue);}
   body{
     font-family:-apple-system,BlinkMacSystemFont,"Apple SD Gothic Neo","Malgun Gothic","Noto Sans KR","Segoe UI",sans-serif;
     background:#3a3d42;
@@ -246,7 +246,7 @@
   <!-- director panel -->
   <div class="panel-wrap" id="panel">
     <div class="p-head">
-      <h1>🎬 감독 패널</h1>
+      <h1>🎬 감독 패널 · v3</h1>
       <span class="close" id="closePanel">✕</span>
     </div>
     <div class="p-body">
@@ -585,8 +585,14 @@
     chat.scrollTop=chat.scrollHeight;
   }
   if(vv){ vv.addEventListener("resize",fitViewport); vv.addEventListener("scroll",fitViewport); }
-  input.addEventListener("focus",()=>setTimeout(fitViewport,60));
-  input.addEventListener("blur",()=>setTimeout(fitViewport,120));
+  let kbRAF=0;
+  function trackKeyboard(dur){
+    const end=performance.now()+dur;
+    cancelAnimationFrame(kbRAF);
+    (function loop(){ fitViewport(); if(performance.now()<end) kbRAF=requestAnimationFrame(loop); })();
+  }
+  input.addEventListener("focus",()=>trackKeyboard(700));
+  input.addEventListener("blur",()=>trackKeyboard(700));
 
   // ---------- 기본값 복원 ----------
   $("#resetAll").onclick=()=>{
