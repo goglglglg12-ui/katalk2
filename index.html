@@ -246,7 +246,7 @@
   <!-- director panel -->
   <div class="panel-wrap" id="panel">
     <div class="p-head">
-      <h1>🎬 감독 패널 · v16</h1>
+      <h1>🎬 감독 패널 · v17</h1>
       <span class="close" id="closePanel">✕</span>
     </div>
     <div class="p-body">
@@ -578,25 +578,24 @@
   const phone=$("#phone"), vv=window.visualViewport;
   let kbActive=false, kbRAF=0;
   function fitViewport(){
+    // v17: 헤더 고정 방식
     if(!body.classList.contains("fill")){
       phone.style.height="";
       phone.style.transform="";
       chat.scrollTop=chat.scrollHeight;
       return;
     }
-
-    // 헤더가 키보드 때문에 움직이지 않도록 phone 전체를 translate 하지 않음
-    phone.style.height = (vv ? vv.height : window.innerHeight) + "px";
-    phone.style.transform = "";
-
+    // visualViewport 이동값을 사용하지 않음
+    phone.style.height="100dvh";
+    phone.style.transform="";
     window.scrollTo(0,0);
-    chat.scrollTop = chat.scrollHeight;
+    chat.scrollTop=chat.scrollHeight;
   }
   function kbLoop(){ if(!kbActive) return; fitViewport(); kbRAF=requestAnimationFrame(kbLoop); }
-  if(vv){ vv.addEventListener("resize",fitViewport); vv.addEventListener("scroll",fitViewport); }
+  // v17: visualViewport 이벤트 비활성화
   window.addEventListener("scroll",()=>{ if(body.classList.contains("fill")) window.scrollTo(0,0); });
-  input.addEventListener("focus",()=>{ kbActive=true; cancelAnimationFrame(kbRAF); kbLoop(); setTimeout(()=>{ kbActive=false; cancelAnimationFrame(kbRAF); fitViewport(); }, 700); });
-  input.addEventListener("blur",()=>{ kbActive=false; cancelAnimationFrame(kbRAF); setTimeout(fitViewport,150); });
+  input.addEventListener("focus",()=>{});
+  input.addEventListener("blur",()=>{});
 
   // ---------- 기본값 복원 ----------
   $("#resetAll").onclick=()=>{
