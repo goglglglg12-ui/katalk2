@@ -262,7 +262,7 @@
   <!-- director panel -->
   <div class="panel-wrap" id="panel">
     <div class="p-head">
-      <h1>🎬 감독 패널 · v19</h1>
+      <h1>🎬 감독 패널 · v20</h1>
       <span class="close" id="closePanel">✕</span>
     </div>
     <div class="p-body">
@@ -596,15 +596,19 @@
   document.addEventListener("fullscreenchange",onFs);
   document.addEventListener("webkitfullscreenchange",onFs);
 
-  // ---------- 헤더만 화면 최상단에 고정 (이름/메뉴 밀림 방지) ----------
+  // ---------- 헤더 고정 + 화면을 키보드 위로 (진짜 칸이 위에 있어 안 밀림) ----------
   const phone=$("#phone"), vv=window.visualViewport, header=$(".kt-header");
-  function fitViewport(){ phone.style.height=""; phone.style.transform=""; }
-  function pinHeader(){ header.style.transform = (body.classList.contains("fill") && vv) ? "translateY("+vv.offsetTop+"px)" : ""; }
+  function updateKB(){
+    const fill = body.classList.contains("fill") && vv;
+    header.style.transform = fill ? "translateY("+vv.offsetTop+"px)" : "";
+    phone.style.height = fill ? (vv.height + "px") : ""; // 보이는 영역(키보드 위)에 맞춤 → 입력창이 키보드 위로
+  }
+  function fitViewport(){ updateKB(); }
   let pinRAF=0, pinOn=false;
-  function pinLoop(){ if(!pinOn) return; pinHeader(); pinRAF=requestAnimationFrame(pinLoop); }
-  if(vv){ vv.addEventListener("resize",pinHeader); vv.addEventListener("scroll",pinHeader); }
-  realInput.addEventListener("focus",()=>{ pinOn=true; cancelAnimationFrame(pinRAF); pinLoop(); setTimeout(()=>{ pinOn=false; cancelAnimationFrame(pinRAF); pinHeader(); },700); });
-  realInput.addEventListener("blur",()=>{ pinOn=false; cancelAnimationFrame(pinRAF); setTimeout(pinHeader,150); });
+  function pinLoop(){ if(!pinOn) return; updateKB(); pinRAF=requestAnimationFrame(pinLoop); }
+  if(vv){ vv.addEventListener("resize",updateKB); vv.addEventListener("scroll",updateKB); }
+  realInput.addEventListener("focus",()=>{ pinOn=true; cancelAnimationFrame(pinRAF); pinLoop(); setTimeout(()=>{ pinOn=false; cancelAnimationFrame(pinRAF); updateKB(); },900); });
+  realInput.addEventListener("blur",()=>{ pinOn=false; cancelAnimationFrame(pinRAF); setTimeout(updateKB,150); });
 
   // ---------- 기본값 복원 ----------
   $("#resetAll").onclick=()=>{
