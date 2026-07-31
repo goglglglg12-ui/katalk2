@@ -2,32 +2,606 @@
 <html lang="ko">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Messenger Prop</title>
-<link rel="stylesheet" href="style.css">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="default">
+<meta name="apple-mobile-web-app-title" content="카톡">
+<meta name="theme-color" content="#b2c7d9">
+<title>카톡 씬 · 촬영용 프로토타입</title>
+<style>
+  :root{
+    --katalk-blue:#b2c7d9;
+    --bubble-them:#ffffff;
+    --bubble-me:#ffe812;
+    --txt:#111315;
+    --time:rgba(20,32,44,.55);
+    --unread:#e9a900;
+    --panel-bg:#1c1f23;
+    --panel-line:#31363c;
+  }
+  *{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent;}
+  html,body{height:100%;background:var(--katalk-blue);overflow:hidden;}
+  body{
+    font-family:-apple-system,BlinkMacSystemFont,"Apple SD Gothic Neo","Malgun Gothic","Noto Sans KR","Segoe UI",sans-serif;
+    background:#3a3d42;
+    display:flex;justify-content:center;align-items:center;
+    min-height:100%;padding:24px;gap:22px;
+    color:#e8eaed;
+    overflow:hidden;
+  }
+  body.filming{background:#000;}
+  body.filming .panel-wrap,body.filming .gear{display:none;}
+
+  /* ---------- PHONE ---------- */
+  .phone{
+    width:390px;height:min(844px,94vh);
+    background:var(--katalk-blue);
+    border-radius:44px;
+    box-shadow:0 30px 80px rgba(0,0,0,.5), 0 0 0 12px #0c0d0f, 0 0 0 13px #23262b;
+    overflow:hidden;position:relative;display:flex;flex-direction:column;flex:0 0 auto;
+  }
+  body.filming .phone{box-shadow:0 0 0 0 transparent;}
+
+  /* status bar */
+  .status{
+    height:52px;background:var(--katalk-blue);
+    display:flex;align-items:flex-end;justify-content:space-between;
+    padding:0 30px 8px;font-weight:600;color:#0d1720;flex:0 0 auto;position:relative;z-index:3;
+  }
+  .status .st-time{font-size:16px;letter-spacing:.3px;font-variant-numeric:tabular-nums;}
+  .status .st-right{display:flex;align-items:center;gap:6px;}
+  .signal{display:flex;align-items:flex-end;gap:2px;height:11px;}
+  .signal i{width:3px;background:#0d1720;border-radius:1px;}
+  .signal i:nth-child(1){height:4px}.signal i:nth-child(2){height:6px}
+  .signal i:nth-child(3){height:8px}.signal i:nth-child(4){height:11px}
+  .wifi{width:15px;height:11px;}
+  .batt{width:24px;height:12px;border:1.5px solid #0d1720;border-radius:3px;position:relative;padding:1.5px;}
+  .batt::after{content:"";position:absolute;right:-3px;top:3px;width:2px;height:5px;background:#0d1720;border-radius:0 1px 1px 0;}
+  .batt i{display:block;height:100%;width:78%;background:#0d1720;border-radius:1px;}
+
+  /* header */
+  .kt-header{
+    height:52px;background:var(--katalk-blue);flex:0 0 auto;
+    display:flex;align-items:center;padding:0 8px 0 6px;gap:2px;
+    color:#101c26;position:relative;z-index:2;
+  }
+  .kt-header .back{font-size:30px;line-height:1;padding:4px 6px 8px;color:#101c26;cursor:default;}
+  .kt-header .title{font-size:17px;font-weight:700;flex:1;letter-spacing:-.2px;}
+  .kt-header .title small{font-weight:500;opacity:.55;margin-left:5px;font-size:14px;}
+  .kt-header .icons{display:flex;gap:14px;padding-right:12px;}
+  .kt-header .icons svg{width:22px;height:22px;}
+
+  /* chat */
+  .chat{
+    flex:1 1 auto;min-height:0;overflow-y:auto;padding:14px 12px 8px;
+    display:flex;flex-direction:column;gap:2px;
+  }
+  .chat::-webkit-scrollbar{width:0;}
+  .datechip{align-self:center;background:rgba(0,0,0,.14);color:#f4f8fb;
+    font-size:12px;padding:4px 13px;border-radius:20px;margin:6px 0 12px;font-weight:500;}
+
+  .row{display:flex;align-items:flex-end;gap:7px;max-width:100%;margin-top:2px;}
+  .row.me{flex-direction:row-reverse;}
+  .row.grp{margin-top:1px;}
+
+  .avatar{width:40px;height:40px;border-radius:15px;flex:0 0 auto;
+    display:flex;align-items:center;justify-content:center;color:#fff;font-weight:700;font-size:16px;overflow:hidden;background:#8fa9bd;}
+  .avatar.ghost{visibility:hidden;}
+  .avatar img{width:100%;height:100%;object-fit:cover;}
+
+  .stack{display:flex;flex-direction:column;max-width:74%;min-width:0;}
+  .name{font-size:13px;color:#33475a;margin:0 2px 3px;font-weight:500;}
+
+  .line{display:flex;align-items:flex-end;gap:5px;}
+  .row.me .line{flex-direction:row-reverse;}
+
+  .bubble{
+    padding:8px 11px;font-size:15.5px;line-height:1.42;color:var(--txt);
+    border-radius:4px 16px 16px 16px;background:var(--bubble-them);
+    word-break:break-word;white-space:pre-wrap;box-shadow:0 1px 0 rgba(0,0,0,.03);
+    letter-spacing:-.2px;
+  }
+  .row.grp .bubble{border-radius:16px;}
+  .row.me .bubble{background:var(--bubble-me);border-radius:16px 4px 16px 16px;}
+  .row.me.grp .bubble{border-radius:16px;}
+
+  .meta{display:flex;flex-direction:column;gap:1px;font-size:11px;color:var(--time);
+    line-height:1.25;padding-bottom:1px;white-space:nowrap;}
+  .row.me .meta{align-items:flex-end;}
+  .meta .unread{color:var(--unread);font-size:12px;font-weight:600;}
+
+  /* typing bubble */
+  .typing .bubble{padding:12px 14px;display:flex;gap:4px;}
+  .typing .dot{width:7px;height:7px;border-radius:50%;background:#b6c2cc;animation:bl 1.2s infinite;}
+  .typing .dot:nth-child(2){animation-delay:.2s}.typing .dot:nth-child(3){animation-delay:.4s}
+  @keyframes bl{0%,60%,100%{opacity:.3;transform:translateY(0)}30%{opacity:1;transform:translateY(-3px)}}
+
+  /* input bar */
+  .inputbar{
+    flex:0 0 auto;background:#fbfbfb;border-top:1px solid #e7e7e7;
+    padding:9px 10px calc(9px + env(safe-area-inset-bottom,10px));
+    display:flex;align-items:flex-end;gap:8px;position:relative;z-index:2;
+  }
+  .inputbar .plus{width:26px;height:26px;flex:0 0 auto;color:#7d7d7d;cursor:default;margin-bottom:5px;}
+  .field{
+    flex:1;background:#fff;border:1px solid #e3e3e3;border-radius:19px;
+    display:flex;align-items:flex-end;padding:6px 8px 6px 14px;min-height:38px;
+  }
+  .field textarea{
+    flex:1;border:none;outline:none;resize:none;font:inherit;font-size:16px;
+    line-height:1.35;max-height:96px;background:transparent;color:#111;padding:1px 0;
+  }
+  .field .emo{width:24px;height:24px;color:#9a9a9a;flex:0 0 auto;margin-left:4px;margin-bottom:1px;}
+  .send{
+    width:38px;height:38px;flex:0 0 auto;border:none;border-radius:50%;
+    background:var(--bubble-me);color:#3a2f00;display:flex;align-items:center;justify-content:center;
+    cursor:pointer;transition:transform .12s, opacity .12s;margin-bottom:0;
+  }
+  .send:active{transform:scale(.9);}
+  .send.hide{opacity:0;pointer-events:none;width:0;margin:0;}
+  .send svg{width:20px;height:20px;}
+
+  /* ---------- DIRECTOR PANEL ---------- */
+  .gear{
+    position:fixed;top:16px;left:16px;width:44px;height:44px;border-radius:12px;
+    background:#20242a;border:1px solid var(--panel-line);color:#cfd4da;
+    display:flex;align-items:center;justify-content:center;cursor:pointer;z-index:50;
+  }
+  .gear:hover{background:#2a2f36;}
+  .gear svg{width:22px;height:22px;}
+
+  .panel-wrap{
+    width:340px;flex:0 0 auto;height:min(844px,94vh);
+    background:var(--panel-bg);border:1px solid var(--panel-line);border-radius:20px;
+    display:flex;flex-direction:column;overflow:hidden;
+  }
+  .panel-wrap.collapsed{display:none;}
+  .p-head{padding:16px 18px;border-bottom:1px solid var(--panel-line);display:flex;justify-content:space-between;align-items:center;}
+  .p-head h1{font-size:15px;font-weight:700;color:#f1f3f5;}
+  .p-head .close{color:#8b929b;cursor:pointer;font-size:20px;line-height:1;}
+  .p-body{flex:1;overflow-y:auto;padding:6px 18px 24px;}
+  .p-body::-webkit-scrollbar{width:8px;}
+  .p-body::-webkit-scrollbar-thumb{background:#3a3f47;border-radius:4px;}
+
+  .sec{padding:15px 0;border-bottom:1px solid var(--panel-line);}
+  .sec:last-child{border-bottom:none;}
+  .sec > label.h{display:block;font-size:11px;letter-spacing:.6px;text-transform:uppercase;color:#7c848e;margin-bottom:10px;font-weight:600;}
+
+  .fld{margin-bottom:10px;}
+  .fld label{display:block;font-size:12px;color:#9aa1aa;margin-bottom:5px;}
+  .in,.sel{
+    width:100%;background:#14171b;border:1px solid #2f353c;border-radius:9px;
+    color:#eceef1;font:inherit;font-size:13.5px;padding:9px 11px;outline:none;
+  }
+  .in:focus,.sel:focus{border-color:#5b93c9;}
+  textarea.in{resize:vertical;min-height:38px;line-height:1.4;}
+  .rowflex{display:flex;gap:8px;}
+  .rowflex > *{flex:1;}
+  .timegrp{display:flex;gap:6px;}
+  .timegrp .sel{padding:8px 6px;}
+
+  .btn{
+    width:100%;background:#2b74c4;color:#fff;border:none;border-radius:9px;
+    padding:10px;font:inherit;font-size:13.5px;font-weight:600;cursor:pointer;margin-top:4px;
+  }
+  .btn:hover{background:#3282d6;}
+  .btn.sub{background:#2a2f36;color:#d6dbe1;}
+  .btn.sub:hover{background:#333942;}
+  .btn.warn{background:#3a2326;color:#e79aa0;}
+  .btn.warn:hover{background:#4a2b2f;}
+  .btn.wide-yellow{background:var(--bubble-me);color:#4a3b00;}
+  .btn.wide-yellow:hover{background:#ffe94a;}
+
+  .chk{display:flex;align-items:center;gap:9px;font-size:13px;color:#c3c9d0;margin:9px 0;cursor:pointer;}
+  .chk input{width:17px;height:17px;accent-color:#2b74c4;}
+
+  .msglist{display:flex;flex-direction:column;gap:6px;margin-top:4px;}
+  .msgitem{display:flex;align-items:center;gap:8px;background:#14171b;border:1px solid #2b3037;
+    border-radius:8px;padding:7px 9px;font-size:12.5px;}
+  .msgitem .tag{flex:0 0 auto;width:34px;text-align:center;font-size:10px;font-weight:700;border-radius:5px;padding:3px 0;}
+  .msgitem .tag.them{background:#2c3742;color:#a9c3d8;}
+  .msgitem .tag.me{background:#4a4413;color:#ffe812;}
+  .msgitem .mtxt{flex:1;color:#cfd4da;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
+  .msgitem .mtime{flex:0 0 auto;color:#79808a;font-size:11px;}
+  .msgitem .del{flex:0 0 auto;color:#8b929b;cursor:pointer;padding:2px 4px;}
+  .msgitem .del:hover{color:#e79aa0;}
+  .empty{color:#6b727b;font-size:12.5px;text-align:center;padding:14px 0;}
+
+  .hint{font-size:11.5px;color:#6f767f;line-height:1.5;margin-top:8px;}
+  kbd{background:#2a2f36;border:1px solid #3a4048;border-radius:5px;padding:1px 6px;font-size:11px;color:#cfd4da;}
+
+  /* ---------- FILL: 폰이 화면을 꽉 채움 (브라우저 창 제거) ---------- */
+  body.fill{padding:0;gap:0;justify-content:flex-start;align-items:flex-start;background:var(--katalk-blue);overflow:hidden;}
+  body.fill .phone{
+    width:100vw;width:100dvw;height:100vh;height:100dvh;
+    border-radius:0;box-shadow:none;
+  }
+  body.fill.standalone .status{display:none;} /* 홈화면 앱: 진짜 상태바 사용 */
+  body.fill.standalone .kt-header{padding-top:max(10px,env(safe-area-inset-top));}
+
+  /* 폰에서 바로: 이름 탭 수정 · 메뉴로 패널 오버레이 */
+  .kt-header .title{cursor:text;}
+  .kt-header .icons{cursor:pointer;}
+  body .panel-wrap.sheet{
+    position:fixed;left:0;top:0;width:100%;height:100vh;height:100dvh;
+    border-radius:0;z-index:80;display:flex;
+  }
+
+  @media (max-width:780px){
+    body{flex-direction:column;overflow:auto;padding:10px;}
+    .panel-wrap{width:min(390px,96vw);height:auto;max-height:70vh;}
+    .phone{height:min(760px,80vh);}
+    .gear{top:10px;left:10px;}
+  }
+</style>
 </head>
 <body>
-<div class="phone">
-<div class="status">
-<input id="clock" value="08:37">
-<div>📶 LTE 🔋100%</div>
-</div>
-<div class="header">
-<input id="name" value="민수">
-</div>
 
-<div id="chat" class="chat"></div>
+  <!-- gear -->
+  <div class="gear" id="gear" title="감독 패널 (D)">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>
+  </div>
 
-<div class="controls">
-<textarea id="msg" placeholder="메시지"></textarea>
-<select id="who">
-<option value="friend">상대</option>
-<option value="me">나</option>
-</select>
-<input id="time" value="오후 8:37">
-<button onclick="addMsg()">추가</button>
-</div>
-</div>
-<script src="script.js"></script>
+  <!-- director panel -->
+  <div class="panel-wrap" id="panel">
+    <div class="p-head">
+      <h1>🎬 감독 패널 · v16</h1>
+      <span class="close" id="closePanel">✕</span>
+    </div>
+    <div class="p-body">
+
+      <div class="sec">
+        <label class="h">상대방 · 화면</label>
+        <div class="fld"><label>상대방 이름</label><input class="in" id="cfgName" value="이름"></div>
+        <div class="rowflex">
+          <div class="fld"><label>프로필 색</label><input class="in" id="cfgColor" type="color" value="#8fa9bd" style="height:38px;padding:3px;"></div>
+          <div class="fld"><label>프로필 이니셜</label><input class="in" id="cfgInitial" value="" placeholder="예: 이"></div>
+        </div>
+        <div class="rowflex">
+          <div class="fld"><label>상태바 시각</label><input class="in" id="cfgStatus" value="9:41"></div>
+          <div class="fld"><label>날짜 구분선</label><input class="in" id="cfgDate" value="3월 5일 화요일"></div>
+        </div>
+      </div>
+
+      <div class="sec">
+        <label class="h">보낼 시각 (새 메시지)</label>
+        <div class="timegrp">
+          <select class="sel" id="ampm"><option>오전</option><option selected>오후</option></select>
+          <select class="sel" id="hh"></select>
+          <select class="sel" id="mm"></select>
+          <button class="btn sub" id="plusMin" style="flex:0 0 auto;width:52px;margin-top:0;" title="1분 뒤">+1분</button>
+        </div>
+        <div class="hint">배우가 입력창에서 보내는 메시지와 아래에서 추가하는 메시지에 이 시각이 찍힙니다.</div>
+      </div>
+
+      <div class="sec">
+        <label class="h">상대방 대사 넣기</label>
+        <div class="fld"><textarea class="in" id="themText" placeholder="상대가 보낸 말..."></textarea></div>
+        <div class="rowflex">
+          <button class="btn sub" id="addThem">대화에 추가</button>
+          <button class="btn" id="liveThem">지금 답장 (…후 표시)</button>
+        </div>
+      </div>
+
+      <div class="sec">
+        <label class="h">내 대사 미리 넣기</label>
+        <div class="fld"><textarea class="in" id="meText" placeholder="미리 짜둘 내 메시지..."></textarea></div>
+        <button class="btn sub" id="addMe">대화에 추가</button>
+      </div>
+
+      <div class="sec">
+        <label class="h">읽음 · 표시</label>
+        <label class="chk"><input type="checkbox" id="autoRead"> 보내는 즉시 읽음 처리 (1 안 뜸)</label>
+        <button class="btn sub" id="markRead">상대가 읽음 — 1 모두 지우기</button>
+      </div>
+
+      <div class="sec">
+        <label class="h">대화 목록</label>
+        <div class="msglist" id="msglist"></div>
+        <div class="rowflex" style="margin-top:10px;">
+          <button class="btn warn" id="clearAll">전체 지우기</button>
+          <button class="btn sub" id="resetAll">기본값 복원</button>
+        </div>
+      </div>
+
+      <div class="sec">
+        <label class="h">촬영</label>
+        <button class="btn wide-yellow" id="filmMode">촬영 모드 — 화면만 남기기</button>
+        <button class="btn sub" id="fsBtn" style="margin-top:8px;">전체화면 (브라우저 창 제거)</button>
+        <div class="hint"><b>아이폰</b>은 Safari에서 이 페이지를 열고 공유 → <b>홈 화면에 추가</b> → 홈 화면 아이콘으로 실행하면 주소창·하단바 없이 꽉 찹니다.<br><b>안드로이드</b>는 위 “전체화면” 버튼, 또는 Chrome 메뉴 → 홈 화면에 추가.<br>되돌리기 <kbd>Esc</kbd>·<kbd>D</kbd>. 화면 녹화로 담아도 됩니다.</div>
+      </div>
+
+    </div>
+  </div>
+
+  <!-- phone -->
+  <div class="phone" id="phone">
+    <div class="status">
+      <span class="st-time" id="stTime">9:41</span>
+      <span class="st-right">
+        <span class="signal"><i></i><i></i><i></i><i></i></span>
+        <svg class="wifi" viewBox="0 0 16 12" fill="#0d1720"><path d="M8 11.5l2-2.5a2.8 2.8 0 0 0-4 0l2 2.5zM3.5 6a7 7 0 0 1 9 0l1.4-1.7a9.2 9.2 0 0 0-11.8 0L3.5 6zm2.2 2.6a4 4 0 0 1 4.6 0l1.4-1.7a6.2 6.2 0 0 0-7.4 0l1.4 1.7z"/></svg>
+        <span class="batt"><i></i></span>
+      </span>
+    </div>
+
+    <div class="kt-header">
+      <span class="back">‹</span>
+      <span class="title" id="hdrName">이름</span>
+      <span class="icons" id="menuBtn">
+        <svg viewBox="0 0 24 24" fill="none" stroke="#101c26" stroke-width="2" stroke-linecap="round"><path d="M3 6h18M3 12h18M3 18h18"/></svg>
+      </span>
+    </div>
+
+    <div class="chat" id="chat"></div>
+
+    <div class="inputbar">
+      <svg class="plus" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><path d="M12 5v14M5 12h14"/></svg>
+      <div class="field">
+        <textarea id="input" rows="1" placeholder=""></textarea>
+        <svg class="emo" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><circle cx="12" cy="12" r="9"/><path d="M8 14s1.5 2 4 2 4-2 4-2" stroke-linecap="round"/><circle cx="9" cy="10" r="1" fill="currentColor" stroke="none"/><circle cx="15" cy="10" r="1" fill="currentColor" stroke="none"/></svg>
+      </div>
+      <button class="send hide" id="send" title="전송">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M12 19V5M5 12l7-7 7 7"/></svg>
+      </button>
+    </div>
+  </div>
+
+<script>
+(function(){
+  "use strict";
+  const $ = s=>document.querySelector(s);
+
+  // ---------- state ----------
+  let cfg = {
+    name:"이름", color:"#8fa9bd", initial:"",
+    status:"9:41", date:"3월 5일 화요일", autoRead:false
+  };
+  let msgs = [
+    {id:1, side:"them", text:"자니?", time:"오후 11:47"},
+    {id:2, side:"me",   text:"응 왜", time:"오후 11:48", read:true},
+    {id:3, side:"them", text:"그냥. 목소리 듣고 싶어서", time:"오후 11:49"},
+  ];
+  let uid = 100;
+
+  // ---------- time selects ----------
+  const hh=$("#hh"), mm=$("#mm");
+  for(let h=1;h<=12;h++){const o=document.createElement("option");o.textContent=h;hh.appendChild(o);}
+  for(let m=0;m<60;m++){const o=document.createElement("option");o.textContent=String(m).padStart(2,"0");mm.appendChild(o);}
+  hh.value="11"; mm.value="50"; $("#ampm").value="오후";
+  function sceneTime(){ return `${$("#ampm").value} ${parseInt(hh.value)}:${mm.value}`; }
+  $("#plusMin").onclick=()=>{
+    let ap=$("#ampm").value, h=parseInt(hh.value), m=parseInt(mm.value)+1;
+    if(m>59){m=0;h++; if(h>12)h=1; if(h===12) ap=(ap==="오전"?"오후":"오전");}
+    $("#ampm").value=ap; hh.value=h; mm.value=String(m).padStart(2,"0"); save();
+  };
+
+  // ---------- 저장 (localStorage) ----------
+  const STORE_KEY="katalkScene_v1";
+  function save(){
+    try{ localStorage.setItem(STORE_KEY, JSON.stringify({
+      cfg, msgs, uid, st:{ap:$("#ampm").value,h:hh.value,m:mm.value}
+    })); }catch(e){}
+  }
+  function load(){
+    try{
+      const raw=localStorage.getItem(STORE_KEY); if(!raw) return;
+      const d=JSON.parse(raw);
+      if(d.cfg) cfg=Object.assign(cfg,d.cfg);
+      if(Array.isArray(d.msgs)) msgs=d.msgs;
+      if(typeof d.uid==="number") uid=d.uid;
+      if(d.st){ $("#ampm").value=d.st.ap; hh.value=d.st.h; mm.value=d.st.m; }
+    }catch(e){}
+  }
+  function syncPanel(){
+    $("#cfgName").value=cfg.name; $("#cfgColor").value=cfg.color;
+    $("#cfgInitial").value=cfg.initial; $("#cfgStatus").value=cfg.status;
+    $("#cfgDate").value=cfg.date; $("#autoRead").checked=!!cfg.autoRead;
+  }
+
+  // ---------- render chat ----------
+  const chat=$("#chat");
+  function esc(t){return t.replace(/[&<>]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;"}[c]));}
+
+  function render(){
+    $("#hdrName").textContent = cfg.name || " ";
+    $("#stTime").textContent = cfg.status || "";
+    chat.innerHTML="";
+    if(cfg.date){
+      const d=document.createElement("div");d.className="datechip";d.textContent=cfg.date;chat.appendChild(d);
+    }
+    msgs.forEach((m,i)=>{
+      const prev=msgs[i-1], next=msgs[i+1];
+      const grp = prev && prev.side===m.side;
+      const firstOfGroup = !grp;
+      const showTime = !next || next.side!==m.side || next.time!==m.time;
+
+      const row=document.createElement("div");
+      row.className="row "+(m.side==="me"?"me":"them")+(grp?" grp":"");
+
+      // avatar (them only)
+      if(m.side==="them"){
+        const av=document.createElement("div");
+        av.className="avatar"+(firstOfGroup?"":" ghost");
+        av.style.background=cfg.color;
+        if(cfg.initial) av.textContent=cfg.initial;
+        row.appendChild(av);
+      }
+
+      const stack=document.createElement("div");stack.className="stack";
+      if(m.side==="them" && firstOfGroup && cfg.name){
+        const nm=document.createElement("div");nm.className="name";nm.textContent=cfg.name;stack.appendChild(nm);
+      }
+      const line=document.createElement("div");line.className="line";
+      const bub=document.createElement("div");bub.className="bubble";bub.innerHTML=esc(m.text);
+      const meta=document.createElement("div");meta.className="meta";
+      if(showTime){
+        if(m.side==="me" && !m.read){const u=document.createElement("span");u.className="unread";u.textContent="1";meta.appendChild(u);}
+        const tm=document.createElement("span");tm.textContent=m.time;meta.appendChild(tm);
+      }
+      line.appendChild(bub);line.appendChild(meta);
+      stack.appendChild(line);row.appendChild(stack);
+      chat.appendChild(row);
+    });
+    chat.scrollTop=chat.scrollHeight;
+    renderList();
+    save();
+  }
+
+  // typing indicator
+  function showTyping(){
+    removeTyping();
+    const row=document.createElement("div");row.className="row them typing";row.id="typingRow";
+    const av=document.createElement("div");av.className="avatar";av.style.background=cfg.color;
+    if(cfg.initial)av.textContent=cfg.initial;row.appendChild(av);
+    const stack=document.createElement("div");stack.className="stack";
+    const line=document.createElement("div");line.className="line";
+    const bub=document.createElement("div");bub.className="bubble";
+    bub.innerHTML='<span class="dot"></span><span class="dot"></span><span class="dot"></span>';
+    line.appendChild(bub);stack.appendChild(line);row.appendChild(stack);
+    chat.appendChild(row);chat.scrollTop=chat.scrollHeight;
+  }
+  function removeTyping(){const t=$("#typingRow");if(t)t.remove();}
+
+  // ---------- panel list ----------
+  const list=$("#msglist");
+  function renderList(){
+    list.innerHTML="";
+    if(!msgs.length){list.innerHTML='<div class="empty">대화가 비어 있습니다</div>';return;}
+    msgs.forEach(m=>{
+      const it=document.createElement("div");it.className="msgitem";
+      it.innerHTML=`<span class="tag ${m.side}">${m.side==="me"?"나":"상대"}</span>
+        <span class="mtxt">${esc(m.text)}</span>
+        <span class="mtime">${m.time}</span>
+        <span class="del" data-id="${m.id}">✕</span>`;
+      list.appendChild(it);
+    });
+    list.querySelectorAll(".del").forEach(d=>d.onclick=()=>{
+      msgs=msgs.filter(x=>x.id!=d.dataset.id);render();
+    });
+  }
+
+  // ---------- add helpers ----------
+  function addMsg(side,text,opts={}){
+    text=text.trim();if(!text)return;
+    msgs.push({id:++uid,side,text,time:opts.time||sceneTime(),read: side==="me"?(cfg.autoRead):undefined});
+    render();
+  }
+
+  // ---------- live actor input ----------
+  const input=$("#input"), send=$("#send");
+  function autosize(){input.style.height="auto";input.style.height=Math.min(input.scrollHeight,96)+"px";}
+  function toggleSend(){send.classList.toggle("hide", input.value.trim()==="");}
+  input.addEventListener("input",()=>{autosize();toggleSend();});
+  const isTouch = window.matchMedia && matchMedia("(pointer:coarse)").matches;
+  input.addEventListener("keydown",e=>{
+    if(!isTouch && e.key==="Enter" && !e.shiftKey){e.preventDefault();doSend();}
+  });
+  function doSend(){
+    const v=input.value.trim();if(!v)return;
+    addMsg("me",v,{time:sceneTime()});
+    input.value="";autosize();toggleSend();input.focus();
+  }
+  send.onclick=doSend;
+
+  // ---------- panel bindings ----------
+  $("#cfgName").oninput=e=>{cfg.name=e.target.value;render();};
+  $("#cfgColor").oninput=e=>{cfg.color=e.target.value;render();};
+  $("#cfgInitial").oninput=e=>{cfg.initial=e.target.value.slice(0,2);render();};
+  $("#cfgStatus").oninput=e=>{cfg.status=e.target.value;render();};
+  $("#cfgDate").oninput=e=>{cfg.date=e.target.value;render();};
+  $("#autoRead").onchange=e=>{cfg.autoRead=e.target.checked;save();};
+  $("#ampm").onchange=save; hh.onchange=save; mm.onchange=save;
+
+  $("#addThem").onclick=()=>{addMsg("them",$("#themText").value);$("#themText").value="";};
+  $("#liveThem").onclick=()=>{
+    const t=$("#themText").value.trim();if(!t)return;
+    $("#themText").value="";
+    showTyping();
+    setTimeout(()=>{removeTyping();addMsg("them",t);}, 1400);
+  };
+  $("#addMe").onclick=()=>{addMsg("me",$("#meText").value);$("#meText").value="";};
+
+  $("#markRead").onclick=()=>{msgs.forEach(m=>{if(m.side==="me")m.read=true;});render();};
+  $("#clearAll").onclick=()=>{if(confirm("대화를 모두 지울까요?")){msgs=[];render();}};
+
+  // ---------- panel show/hide & filming ----------
+  const panel=$("#panel"), gear=$("#gear"), body=document.body;
+  function togglePanel(force){
+    const collapsed = force!==undefined ? !force : !panel.classList.contains("collapsed");
+    panel.classList.toggle("collapsed",collapsed);
+  }
+  gear.onclick=()=>{panel.classList.remove("sheet");togglePanel();};
+  $("#closePanel").onclick=()=>{panel.classList.remove("sheet");panel.classList.add("collapsed");};
+  $("#filmMode").onclick=()=>{body.classList.add("filming");panel.classList.remove("sheet");panel.classList.add("collapsed");};
+
+  // 폰에서 바로: 헤더 이름 탭 → 상대 이름 변경
+  $("#hdrName").addEventListener("click",()=>{
+    const v=prompt("상대방 이름", cfg.name);
+    if(v!==null){ cfg.name=v.trim(); $("#cfgName").value=cfg.name; render(); }
+  });
+  // 폰에서 바로: 메뉴(≡) → 감독 패널을 화면 위로 올림
+  $("#menuBtn").addEventListener("click",()=>{
+    panel.classList.remove("collapsed");
+    panel.classList.add("sheet");
+  });
+  document.addEventListener("keydown",e=>{
+    if(document.activeElement===input) return;
+    if(e.key==="Escape"){body.classList.remove("filming");togglePanel(true);}
+    if(e.key==="d"||e.key==="D"){body.classList.remove("filming");togglePanel();}
+  });
+
+  // ---------- fullscreen / standalone (브라우저 창 제거) ----------
+  const isStandalone = window.navigator.standalone===true ||
+                       (window.matchMedia && matchMedia("(display-mode: standalone)").matches);
+  if(isStandalone){ body.classList.add("fill","standalone","filming"); panel.classList.add("collapsed"); }
+
+  $("#fsBtn").onclick=()=>{
+    const el=document.documentElement;
+    const fsEl=document.fullscreenElement||document.webkitFullscreenElement;
+    if(fsEl){ (document.exitFullscreen||document.webkitExitFullscreen).call(document); }
+    else if(el.requestFullscreen||el.webkitRequestFullscreen){ (el.requestFullscreen||el.webkitRequestFullscreen).call(el); }
+    else{ alert("이 브라우저는 전체화면 버튼을 지원하지 않아요.\n아이폰은 Safari 공유 → ‘홈 화면에 추가’를 쓰세요."); }
+  };
+  function onFs(){
+    const on=!!(document.fullscreenElement||document.webkitFullscreenElement);
+    body.classList.toggle("fill", on||isStandalone);
+    body.classList.toggle("filming", on||isStandalone);
+    if(on) panel.classList.add("collapsed");
+    fitViewport();
+  }
+  document.addEventListener("fullscreenchange",onFs);
+  document.addEventListener("webkitfullscreenchange",onFs);
+
+  // ---------- 키보드 대응 (단순·확실 버전) ----------
+  const phone=$("#phone"), vv=window.visualViewport;
+  let kbActive=false, kbRAF=0;
+  function fitViewport(){
+    if(!body.classList.contains("fill")){ phone.style.height=""; phone.style.transform=""; chat.scrollTop=chat.scrollHeight; return; }
+    phone.style.height = (vv ? vv.height : window.innerHeight) + "px"; // 보이는 영역(키보드 위)에 딱 맞춤
+    phone.style.transform = vv ? "translateY("+vv.offsetTop+"px)" : ""; // 밀린 만큼 되당겨 헤더 고정
+    window.scrollTo(0,0);
+    chat.scrollTop = chat.scrollHeight;
+  }
+  function kbLoop(){ if(!kbActive) return; fitViewport(); kbRAF=requestAnimationFrame(kbLoop); }
+  if(vv){ vv.addEventListener("resize",fitViewport); vv.addEventListener("scroll",fitViewport); }
+  window.addEventListener("scroll",()=>{ if(body.classList.contains("fill")) window.scrollTo(0,0); });
+  input.addEventListener("focus",()=>{ kbActive=true; cancelAnimationFrame(kbRAF); kbLoop(); setTimeout(()=>{ kbActive=false; cancelAnimationFrame(kbRAF); fitViewport(); }, 700); });
+  input.addEventListener("blur",()=>{ kbActive=false; cancelAnimationFrame(kbRAF); setTimeout(fitViewport,150); });
+
+  // ---------- 기본값 복원 ----------
+  $("#resetAll").onclick=()=>{
+    if(!confirm("모든 설정과 대화를 기본값으로 되돌릴까요?")) return;
+    try{ localStorage.removeItem(STORE_KEY); }catch(e){}
+    location.reload();
+  };
+
+  load();
+  syncPanel();
+  render();
+  fitViewport();
+})();
+</script>
 </body>
 </html>
