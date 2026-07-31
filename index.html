@@ -246,7 +246,7 @@
   <!-- director panel -->
   <div class="panel-wrap" id="panel">
     <div class="p-head">
-      <h1>🎬 감독 패널 · v9</h1>
+      <h1>🎬 감독 패널 · v10</h1>
       <span class="close" id="closePanel">✕</span>
     </div>
     <div class="p-body">
@@ -592,6 +592,7 @@
   function onVV(){ settled=false; fitViewport(); clearTimeout(settleT); settleT=setTimeout(()=>{ if(kbActive){ settled=true; fitViewport(); } },220); }
   if(vv){ vv.addEventListener("resize",onVV); vv.addEventListener("scroll",onVV); }
   window.addEventListener("scroll",()=>{ if(body.classList.contains("fill")) window.scrollTo(0,0); });
+  input.addEventListener("touchstart",()=>{ if(!kbActive){ baseH=Math.max(baseH,window.innerHeight); kbActive=true; settled=false; fitViewport(); } },{passive:true});
   input.addEventListener("focus",()=>{ if(!kbActive) baseH=Math.max(baseH,window.innerHeight); kbActive=true; settled=false; fitViewport(); cancelAnimationFrame(kbRAF); kbLoop(); });
   input.addEventListener("blur",()=>{ kbActive=false; settled=false; clearTimeout(settleT); cancelAnimationFrame(kbRAF); setTimeout(fitViewport,150); });
 
