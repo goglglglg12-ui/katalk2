@@ -78,8 +78,11 @@
     display:flex;flex-direction:column;justify-content:flex-end;gap:2px;
   }
   .chat::-webkit-scrollbar{width:0;}
-  .datechip{align-self:center;background:rgba(0,0,0,.14);color:#f4f8fb;
-    font-size:12px;padding:4px 13px;border-radius:20px;margin:6px 0 12px;font-weight:500;}
+  .datechip{align-self:center;background:rgba(74,92,110,.5);color:#fff;
+    font-size:12.5px;padding:6px 14px;border-radius:20px;margin:8px 0 14px;font-weight:500;
+    display:flex;align-items:center;gap:6px;}
+  .datechip .cal{width:15px;height:15px;flex:0 0 auto;}
+  .datechip .chev{width:12px;height:12px;flex:0 0 auto;opacity:.85;margin-left:1px;}
 
   .row{display:flex;align-items:flex-end;gap:7px;max-width:100%;margin-top:2px;}
   .row.me{flex-direction:row-reverse;}
@@ -97,6 +100,7 @@
   .row.me .line{flex-direction:row-reverse;}
 
   .bubble{
+    position:relative;
     padding:8px 11px;font-size:15.5px;line-height:1.42;color:var(--txt);
     border-radius:4px 16px 16px 16px;background:var(--bubble-them);
     word-break:break-word;white-space:pre-wrap;box-shadow:0 1px 0 rgba(0,0,0,.03);
@@ -105,6 +109,9 @@
   .row.grp .bubble{border-radius:16px;}
   .row.me .bubble{background:var(--bubble-me);border-radius:16px 4px 16px 16px;}
   .row.me.grp .bubble{border-radius:16px;}
+  /* 꼬리 (그룹 첫 말풍선에만) */
+  .row.them:not(.grp) .bubble::before{content:"";position:absolute;top:0;left:-5px;border:6px solid transparent;border-top-color:var(--bubble-them);}
+  .row.me:not(.grp) .bubble::before{content:"";position:absolute;top:0;right:-5px;border:6px solid transparent;border-top-color:var(--bubble-me);}
 
   .meta{display:flex;flex-direction:column;gap:1px;font-size:11px;color:var(--time);
     line-height:1.25;padding-bottom:1px;white-space:nowrap;}
@@ -150,9 +157,19 @@
   }
   /* 아래 거울(가짜 입력창): 진짜 칸 내용을 그대로 비춤 */
   .mirror{flex:1;min-height:26px;display:flex;align-items:center;font-size:16px;line-height:1.35;color:#111;overflow:hidden;white-space:pre;padding:1px 0;}
+  .mirror .ph{color:#a6a6a6;flex:0 0 auto;}
   .fakecaret{width:2px;height:20px;background:#3182f6;margin-left:1px;flex:0 0 auto;display:none;}
   .field.focused .fakecaret{display:inline-block;animation:blink 1.06s step-end infinite;}
   @keyframes blink{0%,100%{opacity:1}50%{opacity:0}}
+  /* # / 전송 버튼 */
+  .hashbtn{width:40px;height:40px;flex:0 0 auto;border:none;background:transparent;color:#8a8a8a;
+    display:flex;align-items:center;justify-content:center;cursor:pointer;margin-bottom:0;transition:transform .12s;}
+  .hashbtn:active{transform:scale(.9);}
+  .hashbtn svg{width:23px;height:23px;}
+  .hashbtn .ic-send{display:none;}
+  .hashbtn.active{background:var(--bubble-me);color:#3a2f00;border-radius:50%;width:38px;height:38px;}
+  .hashbtn.active .ic-hash{display:none;}
+  .hashbtn.active .ic-send{display:block;}
 
   /* ---------- DIRECTOR PANEL ---------- */
   .gear{
@@ -214,6 +231,7 @@
   .msgitem .tag{flex:0 0 auto;width:34px;text-align:center;font-size:10px;font-weight:700;border-radius:5px;padding:3px 0;}
   .msgitem .tag.them{background:#2c3742;color:#a9c3d8;}
   .msgitem .tag.me{background:#4a4413;color:#ffe812;}
+  .msgitem .tag.date{background:#2f3a45;color:#cfd8e0;}
   .msgitem .mtxt{flex:1;color:#cfd4da;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
   .msgitem .mtime{flex:0 0 auto;color:#79808a;font-size:11px;}
   .msgitem .del{flex:0 0 auto;color:#8b929b;cursor:pointer;padding:2px 4px;}
@@ -262,7 +280,7 @@
   <!-- director panel -->
   <div class="panel-wrap" id="panel">
     <div class="p-head">
-      <h1>🎬 감독 패널 · v20</h1>
+      <h1>🎬 감독 패널 · v22</h1>
       <span class="close" id="closePanel">✕</span>
     </div>
     <div class="p-body">
@@ -274,10 +292,7 @@
           <div class="fld"><label>프로필 색</label><input class="in" id="cfgColor" type="color" value="#8fa9bd" style="height:38px;padding:3px;"></div>
           <div class="fld"><label>프로필 이니셜</label><input class="in" id="cfgInitial" value="" placeholder="예: 이"></div>
         </div>
-        <div class="rowflex">
-          <div class="fld"><label>상태바 시각</label><input class="in" id="cfgStatus" value="9:41"></div>
-          <div class="fld"><label>날짜 구분선</label><input class="in" id="cfgDate" value="3월 5일 화요일"></div>
-        </div>
+        <div class="fld"><label>상태바 시각</label><input class="in" id="cfgStatus" value="9:41"></div>
       </div>
 
       <div class="sec">
@@ -304,6 +319,12 @@
         <label class="h">내 대사 미리 넣기</label>
         <div class="fld"><textarea class="in" id="meText" placeholder="미리 짜둘 내 메시지..."></textarea></div>
         <button class="btn sub" id="addMe">대화에 추가</button>
+      </div>
+
+      <div class="sec">
+        <label class="h">날짜선 넣기</label>
+        <div class="fld"><input class="in" id="dateText" placeholder="예: 2026년 4월 15일 수요일"></div>
+        <button class="btn sub" id="addDate">대화에 추가</button>
       </div>
 
       <div class="sec">
@@ -345,8 +366,9 @@
     <div class="kt-header">
       <span class="back">‹</span>
       <span class="title" id="hdrName">누나</span>
-      <span class="icons" id="menuBtn">
-        <svg viewBox="0 0 24 24" fill="none" stroke="#101c26" stroke-width="2" stroke-linecap="round"><path d="M3 6h18M3 12h18M3 18h18"/></svg>
+      <span class="icons">
+        <svg class="search" viewBox="0 0 24 24" fill="none" stroke="#101c26" stroke-width="2" stroke-linecap="round"><circle cx="11" cy="11" r="7"/><path d="M21 21l-4.3-4.3"/></svg>
+        <span id="menuBtn"><svg viewBox="0 0 24 24" fill="none" stroke="#101c26" stroke-width="2" stroke-linecap="round"><path d="M3 6h18M3 12h18M3 18h18"/></svg></span>
       </span>
     </div>
 
@@ -356,11 +378,12 @@
     <div class="inputbar">
       <svg class="plus" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><path d="M12 5v14M5 12h14"/></svg>
       <div class="field" id="fakeField">
-        <div class="mirror"><span id="mirrorText"></span><span class="fakecaret"></span></div>
+        <div class="mirror"><span id="mirrorText"></span><span class="fakecaret"></span><span class="ph" id="ph">메시지 입력</span></div>
         <svg class="emo" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><circle cx="12" cy="12" r="9"/><path d="M8 14s1.5 2 4 2 4-2 4-2" stroke-linecap="round"/><circle cx="9" cy="10" r="1" fill="currentColor" stroke="none"/><circle cx="15" cy="10" r="1" fill="currentColor" stroke="none"/></svg>
       </div>
-      <button class="send hide" id="send" title="전송">
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M12 19V5M5 12l7-7 7 7"/></svg>
+      <button class="hashbtn" id="send" title="전송">
+        <svg class="ic-hash" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M4 9h16M4 15h16M10 3L8 21M16 3l-2 18"/></svg>
+        <svg class="ic-send" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M12 19V5M5 12l7-7 7 7"/></svg>
       </button>
     </div>
   </div>
@@ -376,9 +399,17 @@
     status:"9:41", date:"3월 5일 화요일", autoRead:false
   };
   let msgs = [
-    {id:1, side:"them", text:"자니?", time:"오후 11:47"},
-    {id:2, side:"me",   text:"응 왜", time:"오후 11:48", read:true},
-    {id:3, side:"them", text:"그냥. 목소리 듣고 싶어서", time:"오후 11:49"},
+    {id:1, type:"date", text:"2026년 4월 15일 수요일"},
+    {id:2, side:"me", text:"나 내일 졸업식이야", time:"오전 4:58", read:false},
+    {id:3, type:"date", text:"2026년 5월 21일 목요일"},
+    {id:4, side:"me", text:"고등학교는 다르네", time:"오전 4:59", read:false},
+    {id:5, type:"date", text:"2026년 7월 22일 수요일"},
+    {id:6, side:"me", text:"서울은 더버라", time:"오전 4:59", read:false},
+    {id:7, type:"date", text:"2026년 8월 25일 화요일"},
+    {id:8, side:"me", text:"누나 잘 지내지?", time:"오전 5:00", read:false},
+    {id:9, type:"date", text:"2026년 8월 1일 토요일"},
+    {id:10, side:"me", text:"나는 잘 지내", time:"오전 5:01", read:false},
+    {id:11, side:"me", text:"걱정 안 해도 돼", time:"오전 5:01", read:false},
   ];
   let uid = 100;
 
@@ -414,7 +445,7 @@
   function syncPanel(){
     $("#cfgName").value=cfg.name; $("#cfgColor").value=cfg.color;
     $("#cfgInitial").value=cfg.initial; $("#cfgStatus").value=cfg.status;
-    $("#cfgDate").value=cfg.date; $("#autoRead").checked=!!cfg.autoRead;
+    $("#autoRead").checked=!!cfg.autoRead;
   }
 
   // ---------- render chat ----------
@@ -425,10 +456,13 @@
     $("#hdrName").textContent = cfg.name || " ";
     $("#stTime").textContent = cfg.status || "";
     chat.innerHTML="";
-    if(cfg.date){
-      const d=document.createElement("div");d.className="datechip";d.textContent=cfg.date;chat.appendChild(d);
-    }
     msgs.forEach((m,i)=>{
+      if(m.type==="date"){
+        const d=document.createElement("div");d.className="datechip";
+        d.innerHTML='<svg class="cal" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><rect x="3" y="4.5" width="18" height="17" rx="2.5"/><path d="M3 9h18M8 2.5v4M16 2.5v4" stroke-linecap="round"/></svg><span></span><svg class="chev" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"><path d="M9 6l6 6-6 6"/></svg>';
+        d.querySelector("span").textContent=m.text;
+        chat.appendChild(d);return;
+      }
       const prev=msgs[i-1], next=msgs[i+1];
       const grp = prev && prev.side===m.side;
       const firstOfGroup = !grp;
@@ -488,10 +522,17 @@
     if(!msgs.length){list.innerHTML='<div class="empty">대화가 비어 있습니다</div>';return;}
     msgs.forEach(m=>{
       const it=document.createElement("div");it.className="msgitem";
-      it.innerHTML=`<span class="tag ${m.side}">${m.side==="me"?"나":"상대"}</span>
+      if(m.type==="date"){
+        it.innerHTML=`<span class="tag date">날짜</span>
+        <span class="mtxt">${esc(m.text)}</span>
+        <span class="mtime"></span>
+        <span class="del" data-id="${m.id}">✕</span>`;
+      }else{
+        it.innerHTML=`<span class="tag ${m.side}">${m.side==="me"?"나":"상대"}</span>
         <span class="mtxt">${esc(m.text)}</span>
         <span class="mtime">${m.time}</span>
         <span class="del" data-id="${m.id}">✕</span>`;
+      }
       list.appendChild(it);
     });
     list.querySelectorAll(".del").forEach(d=>d.onclick=()=>{
@@ -505,11 +546,16 @@
     msgs.push({id:++uid,side,text,time:opts.time||sceneTime(),read: side==="me"?(cfg.autoRead):undefined});
     render();
   }
+  function addDate(text){
+    text=text.trim();if(!text)return;
+    msgs.push({id:++uid,type:"date",text});
+    render();
+  }
 
   // ---------- live actor input (거울 방식) ----------
   const realInput=$("#realInput"), send=$("#send");
-  const mirrorText=$("#mirrorText"), fakeField=$("#fakeField");
-  function toggleSend(){ send.classList.toggle("hide", realInput.value.trim()===""); }
+  const mirrorText=$("#mirrorText"), fakeField=$("#fakeField"), ph=$("#ph");
+  function toggleSend(){ send.classList.toggle("active", realInput.value.trim()!==""); ph.style.display = realInput.value.length ? "none" : ""; }
   function updateMirror(){ mirrorText.textContent = realInput.value; toggleSend(); }
   realInput.addEventListener("input", updateMirror);
   // 아래 가짜 입력창을 탭하면 → 위의 진짜 칸에 포커스 (진짜 칸은 화면 위라 화면이 안 밀림)
@@ -532,7 +578,7 @@
   $("#cfgColor").oninput=e=>{cfg.color=e.target.value;render();};
   $("#cfgInitial").oninput=e=>{cfg.initial=e.target.value.slice(0,2);render();};
   $("#cfgStatus").oninput=e=>{cfg.status=e.target.value;render();};
-  $("#cfgDate").oninput=e=>{cfg.date=e.target.value;render();};
+  $("#addDate").onclick=()=>{addDate($("#dateText").value);$("#dateText").value="";};
   $("#autoRead").onchange=e=>{cfg.autoRead=e.target.checked;save();};
   $("#ampm").onchange=save; hh.onchange=save; mm.onchange=save;
 
