@@ -212,7 +212,7 @@
   kbd{background:#2a2f36;border:1px solid #3a4048;border-radius:5px;padding:1px 6px;font-size:11px;color:#cfd4da;}
 
   /* ---------- FILL: 폰이 화면을 꽉 채움 (브라우저 창 제거) ---------- */
-  body.fill{padding:0;gap:0;justify-content:flex-start;align-items:flex-start;background:var(--katalk-blue);}
+  body.fill{padding:0;gap:0;justify-content:flex-start;align-items:flex-start;background:var(--katalk-blue);position:fixed;inset:0;overflow:hidden;}
   body.fill .phone{
     width:100vw;width:100dvw;height:100vh;height:100dvh;
     border-radius:0;box-shadow:none;
@@ -246,7 +246,7 @@
   <!-- director panel -->
   <div class="panel-wrap" id="panel">
     <div class="p-head">
-      <h1>🎬 감독 패널 · v3</h1>
+      <h1>🎬 감독 패널 · v4</h1>
       <span class="close" id="closePanel">✕</span>
     </div>
     <div class="p-body">
@@ -580,7 +580,7 @@
     if(!vv) return;
     if(body.classList.contains("fill")){
       phone.style.height=vv.height+"px";
-      phone.style.transform="translateY("+vv.offsetTop+"px)";
+      phone.style.transform="";
     }else{ phone.style.height=""; phone.style.transform=""; }
     chat.scrollTop=chat.scrollHeight;
   }
