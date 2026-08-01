@@ -280,7 +280,7 @@
   <!-- director panel -->
   <div class="panel-wrap" id="panel">
     <div class="p-head">
-      <h1>🎬 감독 패널 · v25</h1>
+      <h1>🎬 감독 패널 · v26</h1>
       <span class="close" id="closePanel">✕</span>
     </div>
     <div class="p-body">
@@ -417,7 +417,7 @@
   const hh=$("#hh"), mm=$("#mm");
   for(let h=1;h<=12;h++){const o=document.createElement("option");o.textContent=h;hh.appendChild(o);}
   for(let m=0;m<60;m++){const o=document.createElement("option");o.textContent=String(m).padStart(2,"0");mm.appendChild(o);}
-  hh.value="11"; mm.value="50"; $("#ampm").value="오후";
+  hh.value="10"; mm.value="24"; $("#ampm").value="오후";
   function sceneTime(){ return `${$("#ampm").value} ${parseInt(hh.value)}:${mm.value}`; }
   $("#plusMin").onclick=()=>{
     let ap=$("#ampm").value, h=parseInt(hh.value), m=parseInt(mm.value)+1;
