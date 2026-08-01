@@ -280,7 +280,7 @@
   <!-- director panel -->
   <div class="panel-wrap" id="panel">
     <div class="p-head">
-      <h1>🎬 감독 패널 · v22</h1>
+      <h1>🎬 감독 패널 · v23</h1>
       <span class="close" id="closePanel">✕</span>
     </div>
     <div class="p-body">
@@ -566,8 +566,11 @@
   realInput.addEventListener("keydown",e=>{
     if(!isTouch && e.key==="Enter" && !e.shiftKey){e.preventDefault();doSend();}
   });
+  const NEW_DATE = "2026년 7월 26일 일요일"; // 배우가 처음 전송할 때 위에 함께 생기는 날짜선
+  let firstLiveSend = true;
   function doSend(){
     const v=realInput.value.trim();if(!v)return;
+    if(firstLiveSend){ addDate(NEW_DATE); firstLiveSend=false; } // 오랜만에 새로 치는 카톡 → 날짜선 먼저
     addMsg("me",v,{time:sceneTime()});
     realInput.value=""; updateMirror(); realInput.focus();
   }
